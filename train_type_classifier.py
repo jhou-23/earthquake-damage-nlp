@@ -9,17 +9,38 @@ import torch
 
 accelerator = Accelerator()
 
-data_dir = "/home/james/Code/Simons22/data/CrisisNLP_labeled_data_crowdflower/event_balanced"
+data_dir = "/home/james/Code/Simons22/data/CrisisNLP_labeled_data_crowdflower/type_balanced"
 dataset = load_dataset('csv', data_files={'train':data_dir+"/train.csv", 'test':data_dir+"/test.csv"})
 
 tokenizer = AutoTokenizer.from_pretrained('roberta-base')
 
 def transform_labels(label):
     label = label["label"]
-    if label == "not_eq":
-        return {"labels":0}
-    else: # eq
-        return {"labels":1}
+    num = -1
+    # if label == "injured_or_dead_people":
+    #     num = 0
+    # elif label == "donation_needs_or_offers_or_volunteering_services":
+    #     num = 1
+    # elif label == "sympathy_and_emotional_support":
+    #     num = 2
+    # elif label == "other_useful_information":
+    #     num = 3
+    # elif label == "not_related_or_irrelevant":
+    #     num = 4
+    # elif label == "infrastructure_and_utilities_damage":
+    #     num = 5
+    # elif label == "caution_and_advice":
+    #     num = 6
+    # elif label == "missing_trapped_or_found_people":
+    #     num = 7
+    # elif label == "displaced_people_and_evacuations":
+    #     num = 8
+    if label == "injured_or_dead_people":
+        num=0
+    else:
+        num=1
+
+    return {"labels":num}
 
 def tokenize_data(example):
     return tokenizer(example["tweet_text"], padding='max_length')
@@ -75,5 +96,6 @@ for batch in test_loader:
     metric2.add_batch(predictions=predictions, references=batch["labels"])
 
 print(metric1.compute())
-print(metric2.compute())
-accelerator.unwrap_model(model).save_pretrained("/home/james/Code/Simons22/models/event_balanced")
+# print(metric2.compute())
+print(metric2.compute(average="weighted"))
+accelerator.unwrap_model(model).save_pretrained("/home/james/Code/Simons22/models/type_balanced")
